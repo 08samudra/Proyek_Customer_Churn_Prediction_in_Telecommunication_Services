@@ -150,3 +150,74 @@ Korelasi terhadap variabel `Churn` (dalam bentuk numerik: 0 = No, 1 = Yes):
 * **Pelanggan churn biasanya baru bergabung dan membayar biaya bulanan tinggi.**
 * **Jenis kontrak sangat memengaruhi churn.**
 * **Korelasi numerik mendukung bahwa `tenure` dan `TotalCharges` adalah indikator penting.**
+
+## Data Preparation
+
+Pada tahap ini, dilakukan sejumlah proses persiapan data agar data mentah yang tersedia dapat digunakan secara efektif oleh model klasifikasi. Berikut adalah teknik dan tahapan data preparation yang telah dilakukan:
+
+### 1. Pembersihan Nilai Kosong  
+Dataset asli memiliki kolom `TotalCharges` yang seharusnya bertipe numerik, namun terdeteksi memiliki nilai kosong yang tersimpan sebagai string kosong (`''`).  
+Untuk mengatasi hal ini:
+- Kolom `TotalCharges` dikonversi menjadi tipe numerik menggunakan `pd.to_numeric()` dengan parameter `errors='coerce'`.
+- Baris dengan nilai kosong setelah konversi dihapus dari dataset menggunakan `dropna()`.
+
+Tujuannya adalah memastikan tidak ada noise data yang mengganggu saat proses pelatihan model.
+
+### 2. Konversi Target Variabel  
+Fitur target `Churn` yang berisi nilai kategorikal `'Yes'` dan `'No'` dikonversi ke nilai numerik (`1` dan `0`) dengan menggunakan `.map()`:
+
+```python
+df['Churn_numerik'] = df['Churn'].map({'No': 0, 'Yes': 1})
+````
+
+Ini diperlukan agar algoritma klasifikasi dapat memproses target sebagai variabel numerik biner.
+
+### 3. Encoding Fitur Kategorikal
+
+Fitur-fitur kategorikal seperti `gender`, `Partner`, `Dependents`, `InternetService`, `Contract`, dan `PaymentMethod` tidak dapat digunakan langsung dalam pemodelan karena bersifat non-numerik.
+Untuk itu, dilakukan proses **One Hot Encoding** menggunakan fungsi `pd.get_dummies()`:
+
+```python
+df_encoded = pd.get_dummies(df.drop(columns=['customerID', 'Churn']), drop_first=True)
+```
+
+* Fitur `customerID` dihapus karena merupakan ID unik yang tidak relevan.
+* Parameter `drop_first=True` digunakan untuk menghindari dummy variable trap.
+
+### 4. Seleksi Fitur
+
+Dari hasil eksplorasi data sebelumnya (Langkah 11–13), diketahui bahwa fitur-fitur numerik `tenure`, `MonthlyCharges`, dan `TotalCharges` memiliki hubungan dengan `Churn`, terutama `tenure` yang memiliki korelasi negatif cukup kuat.
+Fitur-fitur ini dipertahankan karena dianggap relevan dalam prediksi churn pelanggan.
+
+### 5. Normalisasi Fitur Numerik
+
+Untuk memastikan semua fitur numerik berada dalam skala yang seragam (terutama untuk model Logistic Regression), dilakukan proses **normalisasi** menggunakan `MinMaxScaler`:
+
+```python
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler()
+numerical_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+df_encoded[numerical_cols] = scaler.fit_transform(df_encoded[numerical_cols])
+```
+
+### 6. Pembagian Data Training dan Testing
+
+Data dibagi menjadi data pelatihan (training set) dan pengujian (testing set) dengan rasio **80:20** menggunakan fungsi `train_test_split`:
+
+```python
+from sklearn.model_selection import train_test_split
+
+X = df_encoded.drop(columns='Churn_numerik')
+y = df_encoded['Churn_numerik']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+```
+
+* Stratifikasi dilakukan berdasarkan target `Churn_numerik` untuk menjaga proporsi kelas seimbang antara data training dan testing.
+
+---
+
+Dengan seluruh tahapan ini, dataset telah siap digunakan untuk pelatihan model klasifikasi seperti **Logistic Regression**, **Random Forest**, dan **XGBoost**.
