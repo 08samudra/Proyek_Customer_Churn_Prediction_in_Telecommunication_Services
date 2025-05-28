@@ -68,8 +68,6 @@ Untuk mencapai tujuan di atas, solusi yang dirancang dalam proyek ini mencakup:
 
 Dengan pendekatan ini, solusi prediktif yang dikembangkan dapat memberikan wawasan yang jelas bagi manajemen dalam mengambil keputusan retensi pelanggan berdasarkan probabilitas churn.
 
-Terima kasih, dan pertanyaanmu sangat tepat! Mari kita review terlebih dahulu.
-
 ## **Data Understanding**
 
 Tahap Data Understanding bertujuan untuk memahami karakteristik data pelanggan Telco sebelum membangun model prediksi churn. Dataset berisi 7043 entri pelanggan dengan 21 fitur, yang terdiri dari data demografis, layanan yang digunakan, dan informasi pembayaran.
@@ -129,7 +127,6 @@ Korelasi menunjukkan hubungan yang cukup kuat antara:
 
 **Hasil visualisasi:**
 
-> Heatmap Korelasi Numerik
 > ![Heatmap Korelasi](assets/images/kolerasi_antar_fitur_numerik.png)
 
 ### 6. **Korelasi dengan Target (Churn)**
