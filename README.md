@@ -218,6 +218,235 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 * Stratifikasi dilakukan berdasarkan target `Churn_numerik` untuk menjaga proporsi kelas seimbang antara data training dan testing.
 
----
+Dengan seluruh tahapan ini, dataset telah siap digunakan untuk pelatihan model klasifikasi seperti **Logistic Regression** dan **Random Forest**.
 
-Dengan seluruh tahapan ini, dataset telah siap digunakan untuk pelatihan model klasifikasi seperti **Logistic Regression**, **Random Forest**, dan **XGBoost**.
+## Modeling
+
+Dalam proyek ini, dua algoritma machine learning dipilih untuk membangun model prediksi churn pelanggan:
+
+1. **Logistic Regression**
+2. **Random Forest Classifier**
+
+Kedua algoritma ini dipilih karena sifatnya yang umum digunakan untuk klasifikasi biner dan memiliki kemampuan interpretabilitas serta performa yang baik pada data klasifikasi seperti churn pelanggan.
+
+### Algoritma yang Digunakan
+
+#### 1. Logistic Regression
+
+* **Konsep**: Model statistik yang digunakan untuk prediksi probabilitas kejadian suatu peristiwa (binary classification). Menggunakan fungsi logit untuk menghitung hubungan antara input dan output.
+* **Kelebihan**:
+
+  * Cepat dan efisien pada dataset dengan jumlah fitur moderat.
+  * Memberikan interpretasi koefisien yang jelas (arah dan kekuatan pengaruh).
+* **Kekurangan**:
+
+  * Cenderung underfit jika data bersifat kompleks atau non-linear.
+
+#### 2. Random Forest Classifier
+
+* **Konsep**: Model ensemble berbasis decision tree yang menggunakan teknik bagging untuk membangun beberapa pohon keputusan dan menggabungkannya untuk hasil akhir.
+* **Kelebihan**:
+
+  * Lebih tahan terhadap overfitting dibandingkan single decision tree.
+  * Dapat menangani fitur non-linear dan interaksi antar fitur dengan baik.
+* **Kekurangan**:
+
+  * Interpretasi model sulit dilakukan karena kompleksitasnya.
+  * Waktu komputasi bisa lebih lama dibanding Logistic Regression.
+
+### Langkah Modeling yang Dilakukan
+
+1. **Menentukan fitur dan target**
+
+   * Fitur (`X`) dipilih dengan menghapus kolom `customerID`, `Churn`, dan `Churn_numerik`.
+   * Target (`y`) menggunakan kolom `Churn_numerik`.
+
+2. **Encoding fitur kategorikal**
+
+   * Dilakukan dengan metode One-Hot Encoding menggunakan `pd.get_dummies()`.
+
+3. **Split data**
+
+   * Data dibagi ke dalam training dan testing dengan rasio 80:20 menggunakan `train_test_split` dan stratifikasi target.
+
+4. **Training awal**
+
+   * Melatih kedua model dengan parameter default.
+   * Mengevaluasi performa awal dengan `accuracy_score`, `classification_report`, dan `confusion_matrix`.
+
+5. **Tuning Hyperparameter**
+
+   * Logistic Regression:
+
+     * Grid Search pada parameter `C`, `penalty`, dan `solver`.
+     * Param terbaik: `{'C': 0.01, 'penalty': 'l2', 'solver': 'lbfgs'}`.
+   * Random Forest:
+
+     * Grid Search pada parameter `n_estimators`, `max_depth`, `min_samples_split`, dan `min_samples_leaf`.
+     * Param terbaik: `{'max_depth': 10, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 200}`.
+
+### Hasil Model Awal
+
+**Logistic Regression**
+
+* Akurasi awal: **0.8038**
+* Recall kelas churn (1): **0.57**
+
+**Random Forest**
+
+* Akurasi awal: **0.7903**
+* Recall kelas churn (1): **0.49**
+
+### Hasil Setelah Tuning
+
+**Tuned Logistic Regression**
+
+* Akurasi: **0.8024**
+* Recall churn: **0.54**
+* Confusion Matrix:
+
+  ```
+  [[927 106]
+   [172 202]]
+  ```
+
+**Tuned Random Forest**
+
+* Akurasi: **0.7932**
+* Recall churn: **0.53**
+* Confusion Matrix:
+
+  ```
+  [[919 114]
+   [177 197]]
+  ```
+
+### Pemilihan Model Terbaik
+
+Meskipun kedua model memiliki akurasi yang cukup baik dan relatif seimbang, **Logistic Regression dengan tuning** dipilih sebagai model utama karena:
+
+* Memiliki akurasi sedikit lebih tinggi
+* Recall pada kelas churn sedikit lebih tinggi
+* Model lebih sederhana dan interpretatif
+* Lebih cepat dalam pelatihan dan prediksi
+
+## Evaluation
+
+Dalam proyek ini, permasalahan yang dihadapi adalah **klasifikasi biner** untuk memprediksi apakah seorang pelanggan akan melakukan churn (berhenti menggunakan layanan) atau tidak. Oleh karena itu, metrik evaluasi yang digunakan harus mampu menangkap keseimbangan performa prediksi antara dua kelas: **churn (1)** dan **tidak churn (0)**.
+
+
+### Metrik Evaluasi yang Digunakan
+
+1. **Accuracy**
+
+   * Mengukur proporsi prediksi yang benar dari seluruh data.
+   * Cocok digunakan saat distribusi kelas seimbang, tetapi **tidak cukup** jika kelas tidak seimbang.
+
+2. **Precision**
+
+   * Proporsi prediksi churn yang benar dari seluruh prediksi churn.
+   * Penting jika **false positive** harus diminimalkan (misalnya menghindari menawarkan promo ke pelanggan yang tidak akan churn).
+
+3. **Recall**
+
+   * Proporsi churn yang berhasil diprediksi dari seluruh kasus churn aktual.
+   * Penting untuk **mendeteksi sebanyak mungkin pelanggan yang akan churn**, agar bisa dilakukan retensi.
+
+4. **F1 Score**
+
+   * Harmonic mean dari precision dan recall. Memberikan keseimbangan antara keduanya.
+   * Sangat berguna saat terdapat ketidakseimbangan antar kelas dan kita ingin optimasi antara precision dan recall.
+
+5. **Confusion Matrix**
+
+   * Menunjukkan performa klasifikasi secara langsung dalam bentuk True/False Positive dan Negative.
+
+
+### Hasil Evaluasi
+
+#### 1. **Logistic Regression (Setelah Tuning)**
+
+* **Accuracy**: 0.802
+* **Precision (Churn)**: 0.66
+* **Recall (Churn)**: 0.54
+* **F1-Score (Churn)**: 0.59
+* **Confusion Matrix**:
+
+  ```
+  [[927 106]
+   [172 202]]
+  ```
+
+#### 2. **Random Forest (Setelah Tuning)**
+
+* **Accuracy**: 0.793
+* **Precision (Churn)**: 0.63
+* **Recall (Churn)**: 0.53
+* **F1-Score (Churn)**: 0.58
+* **Confusion Matrix**:
+
+  ```
+  [[919 114]
+   [177 197]]
+  ```
+
+> ### Visualisasi Evaluasi Model
+>
+> Untuk memperjelas performa masing-masing model, berikut visualisasi metrik evaluasi utama:
+>
+> * Gambar 1: Perbandingan Accuracy, Precision, Recall, dan F1 Score.
+> ![](assets/images/perbandingan_metrik_evaluasi_model.png)
+
+> * Gambar 2: Kurva ROC dan nilai AUC dari kedua model.
+> ![](assets/images/roc_curve_dua_model.png)
+
+> Model Logistic Regression menunjukkan AUC sedikit lebih tinggi, menandakan kemampuannya dalam membedakan antara kelas churn dan tidak churn sedikit lebih baik dibanding Random Forest.
+
+### Interpretasi Hasil
+
+* **Akurasi** kedua model cukup baik (>79%), namun ini **bukan satu-satunya indikator utama**, karena kita fokus pada kelas minoritas: **Churn (1)**.
+* **Recall** yang tidak terlalu tinggi (\~54%) menunjukkan bahwa masih banyak pelanggan yang benar-benar churn namun gagal terdeteksi. Ini adalah area untuk perbaikan di masa depan (misal: balancing data, model yang lebih kompleks, atau feature engineering tambahan).
+* **Precision** di atas 0.60 menandakan model tidak terlalu sering salah dalam memprediksi churn (false positives masih cukup terkendali).
+* **F1 Score** \~0.59 menandakan trade-off yang lumayan stabil antara precision dan recall.
+
+### Kesimpulan Evaluasi
+
+Model Logistic Regression yang telah dituning memberikan hasil yang **sedikit lebih baik** dibandingkan Random Forest, terutama dalam hal recall dan interpretabilitas. Oleh karena itu, model ini dipilih sebagai model akhir untuk digunakan pada tahap berikutnya dalam pengambilan keputusan bisnis.
+
+Berikut adalah **draft bagian *Kesimpulan*** yang telah disesuaikan dengan struktur laporan Dicoding, konteks proyek prediksi *Customer Churn*, dan gaya penulisan formal seperti pada contoh yang kamu berikan:
+
+## Kesimpulan
+
+Proyek ini berhasil mengembangkan dua model klasifikasi — **Logistic Regression** dan **Random Forest** — untuk memprediksi pelanggan yang berpotensi melakukan churn pada layanan telekomunikasi.
+
+Hasil evaluasi menunjukkan bahwa model **Logistic Regression** memberikan performa terbaik berdasarkan nilai akurasi dan AUC, dengan **akurasi sebesar 80.2%** dan mampu menangkap pola churn dengan keseimbangan precision dan recall yang lebih stabil dibandingkan model Random Forest.
+
+Model Logistic Regression dengan regularisasi L2 dan parameter `C=0.01` terbukti efektif dalam mencegah overfitting serta menangani fitur-fitur dummy dari data kategorikal. Sedangkan model Random Forest meskipun kompetitif, memiliki recall lebih rendah pada kelas churn, yang penting dalam konteks prediksi pelanggan berhenti langganan.
+
+### Manfaat Bagi Perusahaan Telekomunikasi
+
+**1. Deteksi Dini Pelanggan Berisiko Churn**
+Model yang dikembangkan dapat membantu perusahaan mengidentifikasi pelanggan yang berisiko churn lebih awal sehingga memungkinkan tim layanan pelanggan mengambil tindakan preventif seperti penawaran personalisasi atau diskon.
+
+**2. Optimalisasi Strategi Retensi**
+Dengan memahami karakteristik pelanggan yang berisiko churn (berdasarkan fitur penting yang dianalisis), perusahaan dapat merancang strategi retensi berbasis data, mengalokasikan sumber daya secara lebih efisien.
+
+**3. Pengambilan Keputusan Berbasis Data**
+Implementasi model klasifikasi ini mendorong penggunaan pendekatan berbasis data (*data-driven decision making*) dalam pengelolaan pelanggan, yang dapat meningkatkan profitabilitas dan loyalitas pelanggan.
+
+### Langkah Tindak Lanjut
+
+**1. Integrasi Model ke Sistem Operasional**
+Model Logistic Regression yang telah dikembangkan dapat diintegrasikan ke dalam sistem CRM atau dashboard analitik untuk memantau pelanggan secara real-time.
+
+**2. Penambahan Fitur Baru & Sumber Data Tambahan**
+Untuk meningkatkan akurasi prediksi, perusahaan dapat mempertimbangkan fitur tambahan seperti aktivitas pelanggan, interaksi dengan layanan pelanggan, atau data historis promosi.
+
+**3. Pembaruan Model Berkala**
+Model perlu diperbarui secara berkala dengan data terbaru agar tetap relevan terhadap perubahan perilaku pelanggan dan dinamika pasar.
+
+**4. Eksplorasi Teknik Lanjutan**
+Ke depan, perusahaan dapat mengeksplorasi teknik machine learning yang lebih kompleks seperti Gradient Boosting atau XGBoost, serta menerapkan metode explainability seperti SHAP untuk interpretabilitas model.
+
+
+Dengan implementasi yang tepat, model prediksi churn ini dapat menjadi alat penting dalam meningkatkan kepuasan pelanggan, menekan angka churn, dan menjaga keunggulan kompetitif perusahaan di industri telekomunikasi.
