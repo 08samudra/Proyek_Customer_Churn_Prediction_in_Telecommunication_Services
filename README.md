@@ -74,8 +74,6 @@ Tahap Data Understanding bertujuan untuk memahami karakteristik data pelanggan T
 
 Berikut uraian dari masing-masing fitur (kolom) di dalam dataset *Telco Customer Churn*:
 
----
-
 1. **customerID**
    ID unik yang diberikan untuk setiap pelanggan.
 
@@ -189,6 +187,10 @@ Berikut uraian dari masing-masing fitur (kolom) di dalam dataset *Telco Customer
 ---
 
 Dalam hal ini dataset dapat diunduh di: [Kaggle: Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn).
+
+---
+
+Untuk memahami lebih lanjut karakteristik data, dilakukan eksplorasi terhadap tipe data, nilai hilang, distribusi nilai, serta korelasi antar fitur.
 
 ### 1. **Tipe Data**
 
