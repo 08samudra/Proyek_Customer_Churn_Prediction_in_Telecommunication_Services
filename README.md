@@ -72,6 +72,124 @@ Dengan pendekatan ini, solusi prediktif yang dikembangkan dapat memberikan wawas
 
 Tahap Data Understanding bertujuan untuk memahami karakteristik data pelanggan Telco sebelum membangun model prediksi churn. Dataset berisi 7043 entri pelanggan dengan 21 fitur, yang terdiri dari data demografis, layanan yang digunakan, dan informasi pembayaran.
 
+Berikut uraian dari masing-masing fitur (kolom) di dalam dataset *Telco Customer Churn*:
+
+---
+
+1. **customerID**
+   ID unik yang diberikan untuk setiap pelanggan.
+
+2. **gender**
+   Jenis kelamin pelanggan: `Male` atau `Female`.
+
+3. **SeniorCitizen**
+   Menunjukkan apakah pelanggan adalah warga senior (usia 65 tahun ke atas):
+   `1` jika ya, `0` jika tidak.
+
+4. **Partner**
+   Menunjukkan apakah pelanggan memiliki pasangan:
+   `Yes` atau `No`.
+
+5. **Dependents**
+   Menunjukkan apakah pelanggan memiliki tanggungan (anak atau orang lain):
+   `Yes` atau `No`.
+
+6. **tenure**
+   Lama waktu pelanggan telah menggunakan layanan (dalam bulan).
+
+7. **PhoneService**
+   Menunjukkan apakah pelanggan berlangganan layanan telepon rumah:
+   `Yes` atau `No`.
+
+8. **MultipleLines**
+   Menunjukkan apakah pelanggan memiliki lebih dari satu saluran telepon:
+
+   * `No` (tidak ada layanan telepon)
+   * `No phone service`
+   * `Yes` (memiliki beberapa saluran)
+
+9. **InternetService**
+   Jenis layanan internet yang digunakan pelanggan:
+
+   * `DSL`
+   * `Fiber optic`
+   * `No` (tidak memiliki layanan internet)
+
+10. **OnlineSecurity**
+    Apakah pelanggan memiliki perlindungan keamanan online:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+11. **OnlineBackup**
+    Apakah pelanggan menggunakan layanan pencadangan data secara online:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+12. **DeviceProtection**
+    Apakah pelanggan menggunakan layanan perlindungan perangkat:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+13. **TechSupport**
+    Apakah pelanggan menggunakan layanan dukungan teknis:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+14. **StreamingTV**
+    Apakah pelanggan berlangganan layanan streaming TV:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+15. **StreamingMovies**
+    Apakah pelanggan berlangganan layanan streaming film:
+
+    * `Yes`
+    * `No`
+    * `No internet service`
+
+16. **Contract**
+    Jenis kontrak layanan pelanggan:
+
+    * `Month-to-month` (bulanan)
+    * `One year` (satu tahun)
+    * `Two year` (dua tahun)
+
+17. **PaperlessBilling**
+    Apakah pelanggan menggunakan tagihan tanpa kertas (paperless):
+    `Yes` atau `No`.
+
+18. **PaymentMethod**
+    Metode pembayaran yang digunakan pelanggan:
+
+    * `Electronic check`
+    * `Mailed check`
+    * `Bank transfer (automatic)`
+    * `Credit card (automatic)`
+
+19. **MonthlyCharges**
+    Jumlah biaya bulanan yang dibayarkan pelanggan.
+
+20. **TotalCharges**
+    Total biaya yang telah dibayarkan oleh pelanggan selama menggunakan layanan.
+
+21. **Churn**
+    Menunjukkan apakah pelanggan berhenti berlangganan:
+    `Yes` (berhenti) atau `No` (tetap berlangganan).
+
+---
+
+Dalam hal ini dataset dapat diunduh di: [Kaggle: Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn).
+
 ### 1. **Tipe Data**
 
 * Fitur terdiri dari:
@@ -152,55 +270,38 @@ Korelasi terhadap variabel `Churn` (dalam bentuk numerik: 0 = No, 1 = Yes):
 
 Pada tahap ini, dilakukan sejumlah proses persiapan data agar data mentah yang tersedia dapat digunakan secara efektif oleh model klasifikasi. Berikut adalah teknik dan tahapan data preparation yang telah dilakukan:
 
-### 1. Pembersihan Nilai Kosong  
-Dataset asli memiliki kolom `TotalCharges` yang seharusnya bertipe numerik, namun terdeteksi memiliki nilai kosong yang tersimpan sebagai string kosong (`''`).  
-Untuk mengatasi hal ini:
-- Kolom `TotalCharges` dikonversi menjadi tipe numerik menggunakan `pd.to_numeric()` dengan parameter `errors='coerce'`.
-- Baris dengan nilai kosong setelah konversi dihapus dari dataset menggunakan `dropna()`.
+### 1. Pembersihan Nilai Kosong
 
-Tujuannya adalah memastikan tidak ada noise data yang mengganggu saat proses pelatihan model.
+* Kolom `TotalCharges` seharusnya bertipe numerik, namun memiliki beberapa nilai kosong dalam bentuk string kosong (`''`).
+* Data ini dikonversi menggunakan `pd.to_numeric()` dengan `errors='coerce'`, lalu baris dengan nilai `NaN` dihapus menggunakan `dropna()`.
 
-### 2. Konversi Target Variabel  
-Fitur target `Churn` yang berisi nilai kategorikal `'Yes'` dan `'No'` dikonversi ke nilai numerik (`1` dan `0`) dengan menggunakan `.map()`:
+```python
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df = df.dropna()
+```
+
+### 2. Konversi Variabel Target
+
+* Kolom target `Churn` yang berisi `'Yes'` dan `'No'` dikonversi menjadi nilai numerik (`1` dan `0`) agar dapat digunakan oleh algoritma klasifikasi biner.
 
 ```python
 df['Churn_numerik'] = df['Churn'].map({'No': 0, 'Yes': 1})
-````
-
-Ini diperlukan agar algoritma klasifikasi dapat memproses target sebagai variabel numerik biner.
+```
 
 ### 3. Encoding Fitur Kategorikal
 
-Fitur-fitur kategorikal seperti `gender`, `Partner`, `Dependents`, `InternetService`, `Contract`, dan `PaymentMethod` tidak dapat digunakan langsung dalam pemodelan karena bersifat non-numerik.
-Untuk itu, dilakukan proses **One Hot Encoding** menggunakan fungsi `pd.get_dummies()`:
+* Fitur kategorikal dikonversi menjadi bentuk numerik menggunakan **one-hot encoding**.
+* Pada notebook, `pd.get_dummies()` digunakan **tanpa** parameter `drop_first`, sehingga seluruh kategori direpresentasikan secara eksplisit.
+* Kolom `customerID` dihapus karena merupakan ID unik yang tidak memiliki pengaruh terhadap prediksi.
 
 ```python
-df_encoded = pd.get_dummies(df.drop(columns=['customerID', 'Churn']), drop_first=True)
+df_encoded = pd.get_dummies(df.drop(columns=['customerID', 'Churn']))
 ```
 
-* Fitur `customerID` dihapus karena merupakan ID unik yang tidak relevan.
-* Parameter `drop_first=True` digunakan untuk menghindari dummy variable trap.
+### 4. Pembagian Data
 
-### 4. Seleksi Fitur
-
-Dari hasil eksplorasi data sebelumnya (Langkah 11–13), diketahui bahwa fitur-fitur numerik `tenure`, `MonthlyCharges`, dan `TotalCharges` memiliki hubungan dengan `Churn`, terutama `tenure` yang memiliki korelasi negatif cukup kuat.
-Fitur-fitur ini dipertahankan karena dianggap relevan dalam prediksi churn pelanggan.
-
-### 5. Normalisasi Fitur Numerik
-
-Untuk memastikan semua fitur numerik berada dalam skala yang seragam (terutama untuk model Logistic Regression), dilakukan proses **normalisasi** menggunakan `MinMaxScaler`:
-
-```python
-from sklearn.preprocessing import MinMaxScaler
-
-scaler = MinMaxScaler()
-numerical_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
-df_encoded[numerical_cols] = scaler.fit_transform(df_encoded[numerical_cols])
-```
-
-### 6. Pembagian Data Training dan Testing
-
-Data dibagi menjadi data pelatihan (training set) dan pengujian (testing set) dengan rasio **80:20** menggunakan fungsi `train_test_split`:
+* Setelah encoding dan seleksi fitur, dataset dibagi menjadi data latih (`train`) dan data uji (`test`) menggunakan `train_test_split` dengan rasio 80:20.
+* Stratifikasi dilakukan berdasarkan target `Churn_numerik` agar distribusi kelas seimbang di kedua set.
 
 ```python
 from sklearn.model_selection import train_test_split
@@ -213,7 +314,21 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 ```
 
-* Stratifikasi dilakukan berdasarkan target `Churn_numerik` untuk menjaga proporsi kelas seimbang antara data training dan testing.
+### 5. Normalisasi Fitur Numerik (hanya untuk model Logistic Regression)
+
+* **Normalisasi (scaling)** hanya diterapkan saat melatih model **Logistic Regression**, dan **hanya pada data training**, menggunakan `StandardScaler`.
+* Hal ini dilakukan **setelah** pembagian data, untuk menghindari data leakage dari test set ke dalam model.
+
+```python
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+X_train_scaled = X_train.copy()
+X_test_scaled = X_test.copy()
+
+X_train_scaled[numerical_cols] = scaler.fit_transform(X_train[numerical_cols])
+X_test_scaled[numerical_cols] = scaler.transform(X_test[numerical_cols])
+```
 
 Dengan seluruh tahapan ini, dataset telah siap digunakan untuk pelatihan model klasifikasi seperti **Logistic Regression** dan **Random Forest**.
 
